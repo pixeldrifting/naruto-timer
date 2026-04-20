@@ -80,41 +80,45 @@
         const response = await fetch("http://localhost:3000/start");
         const data = await response.text();
 
-        console.log("Servidor:", data);
-
-        // 🔥 Quando upload terminar → reseta cronômetro
-        if (data === "uploaded" || data.includes("Upload")) {
-          resetTimer();
+        if (data === "uploaded") {
+          resetTimer(); // 🔥 reseta quando upload termina
         }
 
       } catch (error) {
-        console.error("Erro ao conectar com o servidor:", error);
         alert("Servidor não está rodando!");
         return;
       }
 
-      // 🔍 Monitorar se arquivo ainda existe
+      if (monitor) clearInterval(monitor);
+
       monitor = setInterval(async () => {
         try {
           const res = await fetch("http://localhost:3000/status");
           const data = await res.json();
 
-          if (!data.exists) {
+          if (data.exists === false) {
             clearInterval(interval);
             clearInterval(monitor);
+
             interval = null;
+            monitor = null;
+
             alert("Arquivo removido. Cronômetro parado.");
           }
+
         } catch (err) {
-          console.error("Erro ao verificar status:", err);
+          console.error(err);
         }
-      }, 2000);
+      }, 1000);
     }
 
     function cleanTimer() {
       clearInterval(interval);
       clearInterval(monitor);
+
       interval = null;
+      monitor = null;
+
       seconds = 0;
       document.getElementById("timer").innerText = "00:00:00";
     }
