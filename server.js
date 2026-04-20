@@ -15,9 +15,11 @@ const FILE_PATH = path.join(__dirname, 'executar.txt');
 let currentFileId = null;
 let fileExists = false;
 
-// ================= AUTH (COM TOKEN FIXO) =================
+// ================= AUTH (SEM ARQUIVO) =================
 function authorize() {
-  const credentials = JSON.parse(fs.readFileSync('credentials.json', 'utf-8'));
+  // 🔥 pega do ENV (Render)
+  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+
   const { client_secret, client_id } = credentials.web;
 
   const oAuth2Client = new google.auth.OAuth2(
@@ -26,7 +28,7 @@ function authorize() {
     'https://developers.google.com/oauthplayground'
   );
 
-  // 👉 TOKEN VINDO DO RENDER
+  // 🔥 tokens do Render
   oAuth2Client.setCredentials({
     access_token: process.env.ACCESS_TOKEN,
     refresh_token: process.env.REFRESH_TOKEN,
@@ -66,7 +68,7 @@ app.get('/start', async (req, res) => {
     res.send('uploaded');
 
   } catch (err) {
-    console.error('❌ ERRO:', err);
+    console.error('❌ ERRO REAL:', err.message);
     res.status(500).send('erro');
   }
 });
@@ -101,7 +103,7 @@ function monitorFile(drive) {
       currentFileId = null;
       clearInterval(interval);
     }
-  }, 1000);
+  }, 2000); // 🔥 evita flood
 }
 
 // ================= SERVER =================
