@@ -59,55 +59,40 @@
       return `${h}:${m}:${s}`;
     }
 
-    function startTimer() {
-      interval = setInterval(() => {
-        seconds++;
-        document.getElementById("timer").innerText = formatTime(seconds);
-      }, 1000);
-    }
-
-    function resetTimer() {
-      seconds = 0;
-      document.getElementById("timer").innerText = "00:00:00";
-    }
-
     async function start() {
       if (interval) return;
 
-      startTimer();
-
       try {
-        const response = await fetch("http://localhost:3000/start");
-        const data = await response.text();
-
-        if (data === "uploaded") {
-          resetTimer(); // 🔥 reseta quando upload termina
-        }
-
+        await fetch("http://localhost:3000/start");
       } catch (error) {
+        console.error("Erro:", error);
         alert("Servidor não está rodando!");
         return;
       }
 
-      if (monitor) clearInterval(monitor);
+      // inicia cronômetro
+      interval = setInterval(() => {
+        seconds++;
+        document.getElementById("timer").innerText = formatTime(seconds);
+      }, 1000);
 
+      // monitora arquivo
       monitor = setInterval(async () => {
         try {
           const res = await fetch("http://localhost:3000/status");
           const data = await res.json();
 
-          if (data.exists === false) {
+          if (!data.exists) {
+            // 🔥 para tudo SEM ALERTA
             clearInterval(interval);
             clearInterval(monitor);
 
             interval = null;
             monitor = null;
-
-            alert("Arquivo removido. Cronômetro parado.");
           }
 
         } catch (err) {
-          console.error(err);
+          console.error("Erro ao verificar status:", err);
         }
       }, 1000);
     }
@@ -118,8 +103,8 @@
 
       interval = null;
       monitor = null;
-
       seconds = 0;
+
       document.getElementById("timer").innerText = "00:00:00";
     }
   </script>
