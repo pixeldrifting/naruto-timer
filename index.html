@@ -50,6 +50,7 @@
   <script>
     let seconds = 0;
     let interval = null;
+    let monitor = null;
 
     function formatTime(sec) {
       let h = String(Math.floor(sec / 3600)).padStart(2, '0');
@@ -58,26 +59,61 @@
       return `${h}:${m}:${s}`;
     }
 
-    async function start() {
-      if (interval) return;
-
-      try {
-        const response = await fetch("http://localhost:3000/start");
-        const data = await response.text();
-        console.log("Servidor:", data);
-      } catch (error) {
-        console.error("Erro ao conectar com o servidor:", error);
-        alert("Servidor não está rodando!");
-      }
-
+    function startTimer() {
       interval = setInterval(() => {
         seconds++;
         document.getElementById("timer").innerText = formatTime(seconds);
       }, 1000);
     }
 
+    function resetTimer() {
+      seconds = 0;
+      document.getElementById("timer").innerText = "00:00:00";
+    }
+
+    async function start() {
+      if (interval) return;
+
+      startTimer();
+
+      try {
+        const response = await fetch("http://localhost:3000/start");
+        const data = await response.text();
+
+        console.log("Servidor:", data);
+
+        // 🔥 Quando upload terminar → reseta cronômetro
+        if (data === "uploaded" || data.includes("Upload")) {
+          resetTimer();
+        }
+
+      } catch (error) {
+        console.error("Erro ao conectar com o servidor:", error);
+        alert("Servidor não está rodando!");
+        return;
+      }
+
+      // 🔍 Monitorar se arquivo ainda existe
+      monitor = setInterval(async () => {
+        try {
+          const res = await fetch("http://localhost:3000/status");
+          const data = await res.json();
+
+          if (!data.exists) {
+            clearInterval(interval);
+            clearInterval(monitor);
+            interval = null;
+            alert("Arquivo removido. Cronômetro parado.");
+          }
+        } catch (err) {
+          console.error("Erro ao verificar status:", err);
+        }
+      }, 2000);
+    }
+
     function cleanTimer() {
       clearInterval(interval);
+      clearInterval(monitor);
       interval = null;
       seconds = 0;
       document.getElementById("timer").innerText = "00:00:00";
