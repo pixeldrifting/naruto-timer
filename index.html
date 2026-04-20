@@ -55,6 +55,8 @@
     let interval = null;
     let monitor = null;
 
+    const API_URL = "https://naruto-timer.onrender.com";
+
     function formatTime(sec) {
       let h = String(Math.floor(sec / 3600)).padStart(2, '0');
       let m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
@@ -66,10 +68,10 @@
       if (interval) return;
 
       try {
-        await fetch("http://localhost:3000/start");
+        await fetch(`${API_URL}/start`);
       } catch (error) {
         console.error("Erro:", error);
-        alert("Servidor não está rodando!");
+        alert("Servidor não está online!");
         return;
       }
 
@@ -82,7 +84,7 @@
       // monitora arquivo
       monitor = setInterval(async () => {
         try {
-          const res = await fetch("http://localhost:3000/status");
+          const res = await fetch(`${API_URL}/status`);
           const data = await res.json();
 
           if (!data.exists) {
@@ -110,7 +112,7 @@
       document.getElementById("timer").innerText = "00:00:00";
     }
 
-    // 🔥 REGISTRO DO SERVICE WORKER
+    // 🔥 SERVICE WORKER
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js')
         .then(() => console.log('Service Worker registrado'));
