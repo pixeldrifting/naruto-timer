@@ -1,3 +1,4 @@
+```js
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -7,30 +8,21 @@ const { google } = require('googleapis');
 const app = express();
 app.use(cors());
 
-const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
-
 // 👉 ARQUIVO QUE VAI SER ENVIADO
 const FILE_PATH = path.join(__dirname, 'executar.txt');
 
 let currentFileId = null;
 let fileExists = false;
 
-// ================= AUTH (SEM ARQUIVO) =================
+// ================= AUTH =================
 function authorize() {
-  // 🔥 pega do ENV (Render)
-  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-
-  const { client_secret, client_id } = credentials.web;
-
   const oAuth2Client = new google.auth.OAuth2(
-    client_id,
-    client_secret,
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
     'https://developers.google.com/oauthplayground'
   );
 
-  // 🔥 tokens do Render
   oAuth2Client.setCredentials({
-    access_token: process.env.ACCESS_TOKEN,
     refresh_token: process.env.REFRESH_TOKEN,
   });
 
@@ -103,7 +95,7 @@ function monitorFile(drive) {
       currentFileId = null;
       clearInterval(interval);
     }
-  }, 2000); // 🔥 evita flood
+  }, 2000);
 }
 
 // ================= SERVER =================
@@ -112,3 +104,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🔥 Servidor rodando na porta ${PORT}`);
 });
+```
