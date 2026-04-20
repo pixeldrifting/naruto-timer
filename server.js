@@ -16,6 +16,10 @@ let fileExists = false;
 
 // ================= AUTH =================
 function authorize() {
+  if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.REFRESH_TOKEN) {
+    throw new Error('Variáveis de ambiente não definidas');
+  }
+
   const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
@@ -36,6 +40,7 @@ app.get('/start', async (req, res) => {
     const drive = google.drive({ version: 'v3', auth });
 
     if (!fs.existsSync(FILE_PATH)) {
+      console.error('❌ Arquivo não encontrado:', FILE_PATH);
       return res.status(400).send('arquivo não encontrado');
     }
 
@@ -60,7 +65,7 @@ app.get('/start', async (req, res) => {
     res.send('uploaded');
 
   } catch (err) {
-    console.error('❌ ERRO REAL:', err.message);
+    console.error('❌ ERRO REAL:', err);
     res.status(500).send('erro');
   }
 });
@@ -90,7 +95,8 @@ function monitorFile(drive) {
         clearInterval(interval);
       }
 
-    } catch {
+    } catch (err) {
+      console.error('Erro ao monitorar:', err.message);
       fileExists = false;
       currentFileId = null;
       clearInterval(interval);
