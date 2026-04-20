@@ -58,8 +58,17 @@
       return `${h}:${m}:${s}`;
     }
 
-    function start() {
+    async function start() {
       if (interval) return;
+
+      try {
+        const response = await fetch("http://localhost:3000/start");
+        const data = await response.text();
+        console.log("Servidor:", data);
+      } catch (error) {
+        console.error("Erro ao conectar com o servidor:", error);
+        alert("Servidor não está rodando!");
+      }
 
       interval = setInterval(() => {
         seconds++;
