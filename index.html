@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Naruto Timer</title>
+
+  <!-- 🔥 PWA -->
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    body {
+      background: #111;
+      color: white;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin-top: 100px;
+    }
+
+    #timer {
+      font-size: 60px;
+      margin-bottom: 40px;
+      color: orange;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 15px 30px;
+      margin: 10px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .start {
+      background: green;
+      color: white;
+    }
+
+    .clean {
+      background: red;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1 id="timer">00:00:00</h1>
+
+  <button class="start" onclick="start()">Start</button>
+  <button class="clean" onclick="cleanTimer()">Clean</button>
+
+  <script>
+    let seconds = 0;
+    let interval = null;
+    let monitor = null;
+
+    const API_URL = "https://naruto-timer.onrender.com";
+
+    function formatTime(sec) {
+      let h = String(Math.floor(sec / 3600)).padStart(2, '0');
+      let m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+      let s = String(sec % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    async function start() {
+      if (interval) return;
+
+      try {
+        await fetch(`${API_URL}/start`);
+      } catch (error) {
+        console.error("Erro:", error);
+        alert("Servidor não está online!");
+        return;
+      }
+
+      // inicia cronômetro
+      interval = setInterval(() => {
+        seconds++;
+        document.getElementById("timer").innerText = formatTime(seconds);
+      }, 1000);
+
+      // monitora arquivo
+      monitor = setInterval(async () => {
+        try {
+          const res = await fetch(`${API_URL}/status`);
+          const data = await res.json();
+
+          if (!data.exists) {
+            clearInterval(interval);
+            clearInterval(monitor);
+
+            interval = null;
+            monitor = null;
+          }
+
+        } catch (err) {
+          console.error("Erro ao verificar status:", err);
+        }
+      }, 1000);
+    }
+
+    function cleanTimer() {
+      clearInterval(interval);
+      clearInterval(monitor);
+
+      interval = null;
+      monitor = null;
+      seconds = 0;
+
+      document.getElementById("timer").innerText = "00:00:00";
+    }
+
+    // 🔥 SERVICE WORKER
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker registrado'));
+    }
+  </script>
+
+</body>
+</html>
